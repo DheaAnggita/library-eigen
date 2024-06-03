@@ -1,5 +1,4 @@
 const { Member } = require('../models');
-const moment = require('moment')
 const membersController = {
   async createMember(req, res) {
     try {
