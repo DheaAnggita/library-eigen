@@ -1,4 +1,4 @@
-const { Book } = require('../models');
+const { Book, Borrow } = require('../models');
 const booksController = {
     async createBook(req, res) {
         try {
@@ -51,7 +51,10 @@ const booksController = {
             res.status(200).json({
                 code: 200,
                 message: 'Get Books Success',
-                data: books
+                data: {
+                    books: books,
+                    total: books.length
+                }
             });
         } catch (error) {
             res.status(500).json({
@@ -129,7 +132,11 @@ const booksController = {
 
     async deleteBook(req, res) {
         try {
-            const book = await Book.findByPk(req.params.id);
+            const book = await Book.findByPk(req.params.id, {
+                include: [
+                  { model: Borrow }
+                ]
+            });
             if (!book) {
             return res.status(404).json({
                 code: 404,

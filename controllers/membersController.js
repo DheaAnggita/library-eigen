@@ -1,4 +1,4 @@
-const { Member } = require('../models');
+const { Member, Borrow, Book } = require('../models');
 const membersController = {
   async createMember(req, res) {
     try {
@@ -50,7 +50,24 @@ const membersController = {
         members = await Member.findAll({where: {name}});
       } else {
         members = await Member.findAll();
-      }   
+      }  
+      for (let member of members) {
+        const borrowedBooks = await Borrow.findAll({
+          where: {
+              member_id: member.id,
+              return_date: null
+          }
+        });
+        const bookIds = borrowedBooks.map(borrow => borrow.book_id);
+        const books = await Book.findAll({
+            where: {
+                id: bookIds
+            },
+            attributes: ['id', 'code', 'title', 'author']
+        });
+        member.dataValues.borrowedBooks = books;
+        member.dataValues.totalBorrowedBooks = books.length;
+      } 
       res.status(200).json({
         code: 200,
         message: 'Get Members Success',
@@ -75,6 +92,21 @@ const membersController = {
           data: null
           });
       }
+      const borrowedBooks = await Borrow.findAll({
+        where: {
+            member_id: member.id,
+            return_date: null
+        }
+      });
+      const bookIds = borrowedBooks.map(borrow => borrow.book_id);
+      const books = await Book.findAll({
+          where: {
+              id: bookIds
+          },
+          attributes: ['id', 'code', 'title', 'author']
+      });
+      member.dataValues.borrowedBooks = books;
+      member.dataValues.totalBorrowedBooks = books.length;
       return res.status(200).json({
         code: 200,
         message: 'Get Member Success',
@@ -126,7 +158,11 @@ const membersController = {
 
   async deleteMember(req, res) {
     try {
-      const member = await Member.findByPk(req.params.id);
+      const member = await Member.findByPk(req.params.id, {
+        include: [
+          { model: Borrow }
+        ]
+      });
       if (!member) {
         return res.status(404).json({
           code: 404,
