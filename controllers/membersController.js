@@ -142,8 +142,8 @@ const membersController = {
       await member.update({
         name,
       });
-      return res.status(201).json({
-        code: 201,
+      return res.status(200).json({
+        code: 200,
         message: 'Member updated successfully',
         data: member
       });

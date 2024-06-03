@@ -1,4 +1,5 @@
 const { Book, Borrow } = require('../models');
+const { Op } = require("sequelize");
 const booksController = {
     async createBook(req, res) {
         try {
@@ -107,7 +108,12 @@ const booksController = {
                     data: null
                 });
             }
-            const existingBook = await Book.findOne({ where: { code } });
+            const existingBook = await Book.findOne({  
+                where: { 
+                    code,
+                    [Op.not]: { id: req.params.id }
+                }  
+            });
             if (existingBook) {
                 return res.status(400).json({
                     code: 400,
@@ -116,12 +122,13 @@ const booksController = {
                 });
             }
             await book.update({ code, title, author, stock, is_borrowed });
-            return res.status(201).json({
-                code: 201,
+            return res.status(200).json({
+                code: 200,
                 message: 'Book updated successfully',
                 data: book
             });
         } catch (error) {
+            console.log(error);
             return res.status(500).json({
                 code: 500,
                 message: 'Internal server error',
